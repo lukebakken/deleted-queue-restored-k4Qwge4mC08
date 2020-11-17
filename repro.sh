@@ -8,23 +8,78 @@ rabbitmqadmin declare policy name=ha pattern='.*' definition='{"ha-mode":"exactl
 echo Done.
 
 echo -n Declaring queues...
-rabbitmqadmin --port 15672 declare queue name="test-1-1" durable=true
-rabbitmqadmin --port 15672 declare queue name="test-1-2" durable=true
-rabbitmqadmin --port 15673 declare queue name="test-2-1" durable=true
-rabbitmqadmin --port 15673 declare queue name="test-2-2" durable=true
-rabbitmqadmin --port 15674 declare queue name="test-3-1" durable=true
-rabbitmqadmin --port 15674 declare queue name="test-3-2" durable=true
+rabbitmqadmin --port 15672 declare queue name="test-1" durable=true
+rabbitmqadmin --port 15673 declare queue name="test-2" durable=true
+rabbitmqadmin --port 15674 declare queue name="test-3" durable=true
 echo Done.
 
-sleep 30
+sleep 10
+
+echo -n Declaring shovels...
+
+# "src-delete-after": "queue-length",
+
+for dest_queue in 'restart-1' 'restart-2'
+do
+    rabbitmqadmin --port 15672 declare queue name="$dest_queue" durable=true
+    curl -v -u guest:guest -H 'content-type: application/json' \
+    -X PUT "localhost:15672/api/parameters/shovel/%2f/move-$dest_queue" -d @- <<EOF
+{
+  "value": {
+    "src-protocol": "amqp091",
+    "src-uri": "amqp://localhost:15672/%2F",
+    "src-queue": "test-1",
+    "dest-protocol": "amqp091",
+    "dest-uri": "amqp://localhost:15672/%2F",
+    "dest-queue": "$dest_queue"
+  }
+}
+EOF
+done
+
+for dest_queue in 'restart-3' 'restart-4'
+do
+    rabbitmqadmin --port 15673 declare queue name="$dest_queue" durable=true
+    curl -v -u guest:guest -H 'content-type: application/json' \
+    -X PUT "localhost:15673/api/parameters/shovel/%2f/move-$dest_queue" -d @- <<EOF
+{
+  "value": {
+    "src-protocol": "amqp091",
+    "src-uri": "amqp://localhost:15673/%2F",
+    "src-queue": "test-2",
+    "dest-protocol": "amqp091",
+    "dest-uri": "amqp://localhost:15673/%2F",
+    "dest-queue": "$dest_queue"
+  }
+}
+EOF
+done
+
+for dest_queue in 'restart-5' 'restart-6'
+do
+    rabbitmqadmin --port 15674 declare queue name="$dest_queue" durable=true
+    curl -v -u guest:guest -H 'content-type: application/json' \
+    -X PUT "localhost:15674/api/parameters/shovel/%2f/move-$dest_queue" -d @- <<EOF
+{
+  "value": {
+    "src-protocol": "amqp091",
+    "src-uri": "amqp://localhost:15674/%2F",
+    "src-queue": "test-3",
+    "dest-protocol": "amqp091",
+    "dest-uri": "amqp://localhost:15674/%2F",
+    "dest-queue": "$dest_queue"
+  }
+}
+EOF
+done
 
 echo -n Deleting queues...
-rabbitmqadmin --port 15672 delete queue name="test-1-1"
-rabbitmqadmin --port 15672 delete queue name="test-1-2"
-rabbitmqadmin --port 15673 delete queue name="test-2-1"
-rabbitmqadmin --port 15673 delete queue name="test-2-2"
-rabbitmqadmin --port 15674 delete queue name="test-3-1"
-rabbitmqadmin --port 15674 delete queue name="test-3-2"
+rabbitmqadmin --port 15672 delete queue name="restart-1"
+rabbitmqadmin --port 15672 delete queue name="restart-2"
+rabbitmqadmin --port 15673 delete queue name="restart-3"
+rabbitmqadmin --port 15673 delete queue name="restart-4"
+rabbitmqadmin --port 15674 delete queue name="restart-5"
+rabbitmqadmin --port 15674 delete queue name="restart-6"
 echo Done.
 
 sleep 5
