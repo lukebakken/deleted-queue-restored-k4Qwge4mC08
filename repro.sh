@@ -7,33 +7,31 @@ echo -n Declaring policy...
 rabbitmqadmin declare policy name=ha pattern='.*' definition='{"ha-mode":"exactly","ha-params":2,"ha-sync-mode":"automatic","queue-master-locator":"min-masters"}' priority=0 apply-to=queues
 echo Done.
 
-declare -r routing_key='VuICv0AMzKo'
-declare -r exch_name="exchange-$routing_key"
-echo -n Declaring exchange $exch_name...
-rabbitmqadmin declare exchange name="$exch_name" type=topic durable=true
-echo Done.
-
 echo -n Declaring queues...
-rabbitmqadmin -p 15672 declare queue name="test-1-1" durable=true
-rabbitmqadmin -p 15672 declare queue name="test-1-2" durable=true
-rabbitmqadmin -p 15673 declare queue name="test-2-1" durable=true
-rabbitmqadmin -p 15673 declare queue name="test-2-2" durable=true
-rabbitmqadmin -p 15674 declare queue name="test-3-1" durable=true
-rabbitmqadmin -p 15674 declare queue name="test-3-2" durable=true
+rabbitmqadmin --port 15672 declare queue name="test-1-1" durable=true
+rabbitmqadmin --port 15672 declare queue name="test-1-2" durable=true
+rabbitmqadmin --port 15673 declare queue name="test-2-1" durable=true
+rabbitmqadmin --port 15673 declare queue name="test-2-2" durable=true
+rabbitmqadmin --port 15674 declare queue name="test-3-1" durable=true
+rabbitmqadmin --port 15674 declare queue name="test-3-2" durable=true
 echo Done.
 
-sleep 5
+sleep 30
 
 echo -n Deleting queues...
-rabbitmqadmin -p 15672 delete queue name="test-1-1"
-rabbitmqadmin -p 15672 delete queue name="test-1-2"
-rabbitmqadmin -p 15673 delete queue name="test-2-1"
-rabbitmqadmin -p 15673 delete queue name="test-2-2"
-rabbitmqadmin -p 15674 delete queue name="test-3-1"
-rabbitmqadmin -p 15674 delete queue name="test-3-2"
+rabbitmqadmin --port 15672 delete queue name="test-1-1"
+rabbitmqadmin --port 15672 delete queue name="test-1-2"
+rabbitmqadmin --port 15673 delete queue name="test-2-1"
+rabbitmqadmin --port 15673 delete queue name="test-2-2"
+rabbitmqadmin --port 15674 delete queue name="test-3-1"
+rabbitmqadmin --port 15674 delete queue name="test-3-2"
 echo Done.
 
 sleep 5
+
+set +o nounset
+source "$HOME/development/erlang/installs/23.1.3/activate"
+set -o nounset
 
 readonly rmqctl="$HOME/development/rabbitmq/rabbitmq-server/sbin/rabbitmqctl"
 
