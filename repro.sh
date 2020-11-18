@@ -17,8 +17,6 @@ sleep 10
 
 echo -n Declaring shovels...
 
-# "src-delete-after": "queue-length",
-
 for dest_queue in 'restart-1' 'restart-2'
 do
     rabbitmqadmin --port 15672 declare queue name="$dest_queue" durable=true
@@ -29,6 +27,7 @@ do
     "src-protocol": "amqp091",
     "src-uri": "amqp://localhost:15672/%2F",
     "src-queue": "test-1",
+    "src-delete-after": "queue-length",
     "dest-protocol": "amqp091",
     "dest-uri": "amqp://localhost:15672/%2F",
     "dest-queue": "$dest_queue"
@@ -47,6 +46,7 @@ do
     "src-protocol": "amqp091",
     "src-uri": "amqp://localhost:15673/%2F",
     "src-queue": "test-2",
+    "src-delete-after": "queue-length",
     "dest-protocol": "amqp091",
     "dest-uri": "amqp://localhost:15673/%2F",
     "dest-queue": "$dest_queue"
@@ -65,6 +65,7 @@ do
     "src-protocol": "amqp091",
     "src-uri": "amqp://localhost:15674/%2F",
     "src-queue": "test-3",
+    "src-delete-after": "queue-length",
     "dest-protocol": "amqp091",
     "dest-uri": "amqp://localhost:15674/%2F",
     "dest-queue": "$dest_queue"
@@ -72,6 +73,8 @@ do
 }
 EOF
 done
+
+sleep 10
 
 echo -n Deleting queues...
 rabbitmqadmin --port 15672 delete queue name="restart-1"
@@ -82,7 +85,7 @@ rabbitmqadmin --port 15674 delete queue name="restart-5"
 rabbitmqadmin --port 15674 delete queue name="restart-6"
 echo Done.
 
-sleep 5
+sleep 10
 
 set +o nounset
 source "$HOME/development/erlang/installs/23.1.3/activate"
