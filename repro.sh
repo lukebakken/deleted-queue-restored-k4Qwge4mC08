@@ -15,63 +15,33 @@ echo Done.
 
 sleep 10
 
+function declare_dynamic_shovel
+{
+    local -ri amqp_port="$1"
+    local -ri http_api_port="$2"
+    local -r src_queue="$3"
+    local -r dest_queue="$4"
+    local -r dynamic_shovel_name="move-$dest_queue"
+    curl -vu guest:guest -H 'content-type: application/json' \
+        -X PUT "localhost:$http_api_port/api/parameters/shovel/%2F/$dynamic_shovel_name" \
+        --data-binary "{\"component\":\"shovel\",\"vhost\":\"/\",\"name\":\"$dynamic_shovel_name\",\"value\":{\"src-uri\":\"amqp://localhost:$amqp_port/%2F\",\"src-queue\":\"$src_queue\",\"src-protocol\":\"amqp091\",\"src-prefetch-count\":1000,\"src-delete-after\":\"queue-length\",\"dest-protocol\":\"amqp091\",\"dest-uri\":\"amqp://localhost:$amqp_port/%2F\",\"dest-add-forward-headers\":false,\"ack-mode\":\"on-confirm\",\"dest-queue\":\"$dest_queue\"}}"
+}
+
 echo -n Declaring shovels...
 
 for dest_queue in 'restart-1' 'restart-2'
 do
-    rabbitmqadmin --port 15672 declare queue name="$dest_queue" durable=true
-    curl -v -u guest:guest -H 'content-type: application/json' \
-    -X PUT "localhost:15672/api/parameters/shovel/%2f/move-$dest_queue" -d @- <<EOF
-{
-  "value": {
-    "src-protocol": "amqp091",
-    "src-uri": "amqp://localhost:15672/%2F",
-    "src-queue": "test-1",
-    "src-delete-after": "queue-length",
-    "dest-protocol": "amqp091",
-    "dest-uri": "amqp://localhost:15672/%2F",
-    "dest-queue": "$dest_queue"
-  }
-}
-EOF
+    declare_dynamic_shovel 5672 15672 'test-1' "$dest_queue"
 done
 
 for dest_queue in 'restart-3' 'restart-4'
 do
-    rabbitmqadmin --port 15673 declare queue name="$dest_queue" durable=true
-    curl -v -u guest:guest -H 'content-type: application/json' \
-    -X PUT "localhost:15673/api/parameters/shovel/%2f/move-$dest_queue" -d @- <<EOF
-{
-  "value": {
-    "src-protocol": "amqp091",
-    "src-uri": "amqp://localhost:15673/%2F",
-    "src-queue": "test-2",
-    "src-delete-after": "queue-length",
-    "dest-protocol": "amqp091",
-    "dest-uri": "amqp://localhost:15673/%2F",
-    "dest-queue": "$dest_queue"
-  }
-}
-EOF
+    declare_dynamic_shovel 5673 15673 'test-2' "$dest_queue"
 done
 
 for dest_queue in 'restart-5' 'restart-6'
 do
-    rabbitmqadmin --port 15674 declare queue name="$dest_queue" durable=true
-    curl -v -u guest:guest -H 'content-type: application/json' \
-    -X PUT "localhost:15674/api/parameters/shovel/%2f/move-$dest_queue" -d @- <<EOF
-{
-  "value": {
-    "src-protocol": "amqp091",
-    "src-uri": "amqp://localhost:15674/%2F",
-    "src-queue": "test-3",
-    "src-delete-after": "queue-length",
-    "dest-protocol": "amqp091",
-    "dest-uri": "amqp://localhost:15674/%2F",
-    "dest-queue": "$dest_queue"
-  }
-}
-EOF
+    declare_dynamic_shovel 5674 15674 'test-3' "$dest_queue"
 done
 
 sleep 10
