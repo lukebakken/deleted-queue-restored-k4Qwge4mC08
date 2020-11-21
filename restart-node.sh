@@ -5,7 +5,7 @@ set -o errexit
 readonly script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 echo "[INFO] script_dir: $script_dir"
 
-source "$HOME/development/erlang/installs/23.1.3/activate"
+source "$HOME/development/erlang/installs/23.1.4/activate"
 
 set -o nounset
 
